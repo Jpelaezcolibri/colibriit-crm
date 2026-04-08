@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import ContactRow from '../sequence/ContactRow';
 import { Button } from '@/components/ui/button';
 import MeddicModal from '../shared/MeddicModal';
+import AddContactModal from '../sequence/AddContactModal';
+import type { Contact } from '@/lib/types';
 
 interface Props {
   company: Company;
@@ -14,11 +16,16 @@ interface Props {
 
 export default function CompanyDetailModal({ company, onClose }: Props) {
   const [showMeddic, setShowMeddic] = useState(false);
-  const { state, updateMeddicData } = useAppState();
+  const [showAddContact, setShowAddContact] = useState(false);
+  const { state, updateMeddicData, addContact } = useAppState();
   const contacts = state.contacts.filter(c => c.empresa_id === company.id);
 
   const handleSaveMeddic = (data: MeddicData) => {
     updateMeddicData(company.id, data);
+  };
+
+  const handleSaveContact = (contact: Contact) => {
+    addContact(contact);
   };
 
   const getTierColor = (tier: number) => {
@@ -133,7 +140,12 @@ export default function CompanyDetailModal({ company, onClose }: Props) {
                   <Users className="w-5 h-5 text-zinc-400" />
                   Contactos y Secuencias ({contacts.length})
                 </h3>
-                <Button size="sm" variant="outline" className="text-zinc-300 border-zinc-700 hover:text-white hover:bg-zinc-800 border-dashed">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-zinc-300 border-zinc-700 hover:text-white hover:bg-zinc-800 border-dashed"
+                  onClick={() => setShowAddContact(true)}
+                >
                   + Agregar Contacto
                 </Button>
               </div>
@@ -160,6 +172,14 @@ export default function CompanyDetailModal({ company, onClose }: Props) {
           company={company}
           onClose={() => setShowMeddic(false)}
           onSave={handleSaveMeddic}
+        />
+      )}
+
+      {showAddContact && (
+        <AddContactModal 
+          company={company}
+          onClose={() => setShowAddContact(false)}
+          onSave={handleSaveContact}
         />
       )}
     </>

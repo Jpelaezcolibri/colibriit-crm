@@ -3,6 +3,7 @@ import { useAppState } from '@/hooks/useAppState';
 import type { PipelineStage } from '@/lib/types';
 import { PipelineCard } from './PipelineCard';
 import CompanyDetailModal from './CompanyDetailModal';
+import AddCompanyModal from './AddCompanyModal';
 import {
   Rocket,
   Target,
@@ -21,9 +22,10 @@ const STAGES: { id: PipelineStage; label: string; sublabel: string; icon: any; c
 ];
 
 export const PipelineBoard: React.FC = () => {
-  const { state, moveCompanyToStage, addCompanyLog } = useAppState();
+  const { state, moveCompanyToStage, addCompanyLog, addCompany } = useAppState();
   const [dragOverStage, setDragOverStage] = useState<PipelineStage | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [showAddCompany, setShowAddCompany] = useState(false);
 
   const onDragStart = (e: React.DragEvent, id: string) => {
     e.dataTransfer.setData('companyId', id);
@@ -81,7 +83,22 @@ export const PipelineBoard: React.FC = () => {
             <span className="text-cyan-400 font-bold">{totalResponded}</span> respondieron
           </span>
         </div>
-        <span className="text-[10px] text-zinc-600 font-mono">Arrastra para mover entre etapas</span>
+        
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowAddCompany(true)}
+            className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors text-xs font-bold mr-4"
+          >
+            + Añadir Prospecto
+          </button>
+          
+          {useAppState().isCloudSyncing && (
+            <span className="text-[10px] text-emerald-400 font-mono animate-pulse flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Sincronizando nube...
+            </span>
+          )}
+          <span className="text-[10px] text-zinc-600 font-mono">Arrastra para mover entre etapas</span>
+        </div>
       </div>
 
       {/* Kanban Board */}
@@ -149,6 +166,13 @@ export const PipelineBoard: React.FC = () => {
         <CompanyDetailModal 
           company={selectedCompany} 
           onClose={() => setSelectedCompanyId(null)} 
+        />
+      )}
+
+      {showAddCompany && (
+        <AddCompanyModal 
+          onClose={() => setShowAddCompany(false)}
+          onSave={(company) => addCompany(company)}
         />
       )}
     </div>

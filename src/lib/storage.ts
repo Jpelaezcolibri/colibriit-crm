@@ -6,7 +6,7 @@ export interface AppState {
   contacts: Contact[];
 }
 
-const STORAGE_KEY = "colibriit_crm_state_v2";
+const STORAGE_KEY = "colibriit_crm_state_v3";
 
 export function getInitialState(): AppState {
   // Merge definitions from both modules

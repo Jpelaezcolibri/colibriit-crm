@@ -1,7 +1,14 @@
 export type PipelineStage = "outreach" | "discovery" | "proposal" | "negotiation" | "closed_won" | "closed_lost";
 
+export interface Campaign {
+  id: string;
+  nombre: string;
+  descripcion?: string;
+}
+
 export interface Company {
   id: string;                    // Ej: "E01", "E02"
+  campaign_id?: string;          // Opcional inicial pero recomendado
   nombre: string;
   pais: string;                  // "Colombia" | "México" | "Panamá" | "Perú" | "Chile"
   sector: string;
