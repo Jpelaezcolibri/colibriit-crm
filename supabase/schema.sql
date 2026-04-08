@@ -1,22 +1,25 @@
--- Schema Multi-Campaña para el ColibriIT Executive CRM (Supabase)
+-- Schema Multi-Tenant: SaaS ColibriIT CRM (V3 - RLS & Auth)
 
--- A. Limpiar cualquier estructura vieja si existe (Precaución en Producción, pero ideal aquí)
+-- 🚀 PASO 0: Limpieza obligatoria (Borra estructuras vulnerables viejas)
 DROP TABLE IF EXISTS contacts CASCADE;
 DROP TABLE IF EXISTS companies CASCADE;
 DROP TABLE IF EXISTS campaigns CASCADE;
 
--- 1. Tabla de Campañas (Workspaces)
+-- 🚀 PASO 1: Creación de Tablas Blindadas
+
+-- 1A. Campañas (Ahora ligadas nativamente a UN vendedor/usuario en auth.users)
 CREATE TABLE campaigns (
   id TEXT PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   nombre TEXT NOT NULL,
   descripcion TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 2. Tabla de Compañías (Empresas)
+-- 1B. Compañías / Prospectos
 CREATE TABLE companies (
   id TEXT PRIMARY KEY,
-  campaign_id TEXT REFERENCES campaigns(id) ON DELETE CASCADE,
+  campaign_id TEXT REFERENCES campaigns(id) ON DELETE CASCADE NOT NULL,
   nombre TEXT NOT NULL,
   pais TEXT NOT NULL,
   sector TEXT NOT NULL,
@@ -34,10 +37,10 @@ CREATE TABLE companies (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- 3. Tabla de Contactos
+-- 1C. Contactos / Actores
 CREATE TABLE contacts (
   id TEXT PRIMARY KEY,
-  empresa_id TEXT REFERENCES companies(id) ON DELETE CASCADE,
+  empresa_id TEXT REFERENCES companies(id) ON DELETE CASCADE NOT NULL,
   nombre TEXT NOT NULL,
   cargo TEXT NOT NULL,
   email TEXT,
@@ -56,27 +59,57 @@ CREATE TABLE contacts (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
--- Triggers y lógica de seguridad
-CREATE OR REPLACE FUNCTION update_modified_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
+-- Triggers de Auditoría Básica
+CREATE OR REPLACE FUNCTION update_modified_column() RETURNS TRIGGER AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_companies_modtime
-BEFORE UPDATE ON companies FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+CREATE TRIGGER update_companies_modtime BEFORE UPDATE ON companies FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+CREATE TRIGGER update_contacts_modtime BEFORE UPDATE ON contacts FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
 
-CREATE TRIGGER update_contacts_modtime
-BEFORE UPDATE ON contacts FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+-- 🚀 PASO 2: SEGURIDAD (Row Level Security)
 
--- Habilitar RLS (Seguridad a Nivel de Filas)
+-- Encender el muro de fuego en todas las tablas
 ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
 
--- Políticas permisivas (solo para uso de esta aplicación front-end internamente conectada al Dashboard)
-CREATE POLICY "Allow public read/write" ON campaigns FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read/write" ON companies FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public read/write" ON contacts FOR ALL USING (true) WITH CHECK (true);
+-- REGLAS DE CAMPAÑAS: "Solo lee/escribe quien haya creado la campaña"
+CREATE POLICY "Users can fully manage their own campaigns"
+  ON campaigns FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- REGLAS DE COMPAÑIAS: "Si eres dueño de la Campaña que envuelve esta Compañía, entonces tienes permiso"
+CREATE POLICY "Users can fully manage companies in their campaigns"
+  ON companies FOR ALL
+  USING (
+    EXISTS (
+      SELECT 1 FROM campaigns
+      WHERE campaigns.id = companies.campaign_id AND campaigns.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM campaigns
+      WHERE campaigns.id = companies.campaign_id AND campaigns.user_id = auth.uid()
+    )
+  );
+
+-- REGLAS DE CONTACTOS: "Si eres dueño de la Campaña que envuelve la Compañia de este Contacto, tienes permiso"
+CREATE POLICY "Users can fully manage contacts in their campaigns"
+  ON contacts FOR ALL
+  USING (
+     EXISTS (
+      SELECT 1 FROM companies
+      JOIN campaigns ON campaigns.id = companies.campaign_id
+      WHERE companies.id = contacts.empresa_id AND campaigns.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+     EXISTS (
+      SELECT 1 FROM companies
+      JOIN campaigns ON campaigns.id = companies.campaign_id
+      WHERE companies.id = contacts.empresa_id AND campaigns.user_id = auth.uid()
+    )
+  );

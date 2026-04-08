@@ -1,4 +1,6 @@
 import { AppProvider } from '@/hooks/useAppState';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import AuthPage from '@/components/auth/AuthPage';
 import { Header } from '@/components/layout/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProspectView from '@/components/prospects/ProspectView';
@@ -6,7 +8,25 @@ import AgendaView from '@/components/calendar/AgendaView';
 import SalesforceView from '@/components/salesforce/SalesforceView';
 import { PipelineBoard } from '@/components/pipeline/PipelineBoard';
 
-function App() {
+function MainApp() {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 rounded-full border-t-2 border-r-2 border-cyan-500 animate-spin"></div>
+          <p className="text-zinc-500 font-mono text-sm tracking-widest uppercase">Cargando Workspace...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
+
+  // Si hay usuario, retornamos la App central con su Provider de Contexto
   return (
     <AppProvider>
       <div className="min-h-screen bg-black text-white">
@@ -39,6 +59,14 @@ function App() {
         </main>
       </div>
     </AppProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
 

@@ -4,6 +4,9 @@ import type { AppState } from './storage';
 
 export async function fetchCampaigns(): Promise<Campaign[]> {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
     const { data, error } = await supabase.from('campaigns').select('*').order('created_at', { ascending: false });
     if (error) throw error;
     return data || [];
@@ -14,12 +17,17 @@ export async function fetchCampaigns(): Promise<Campaign[]> {
 }
 
 export async function createCampaign(nombre: string, descripcion: string = ""): Promise<Campaign | null> {
-  const newCamp = {
-    id: `CAMP-${Date.now()}`,
-    nombre,
-    descripcion
-  };
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthenticated");
+
+    const newCamp = {
+      id: `CAMP-${Date.now()}`,
+      user_id: user.id,
+      nombre,
+      descripcion
+    };
+    
     const { error } = await supabase.from('campaigns').insert(newCamp);
     if (error) throw error;
     return newCamp;
@@ -38,7 +46,6 @@ export async function fetchStateFromSupabase(campaignId: string): Promise<AppSta
       
     if (errC) throw errC;
 
-    // We only fetch contacts for the companies in this campaign
     const companyIds = companies?.map(c => c.id) || [];
     
     let contacts: any[] = [];
@@ -98,13 +105,20 @@ export async function fetchStateFromSupabase(campaignId: string): Promise<AppSta
 
 export async function migrateLocalStateToSupabase(localState: AppState) {
   try {
-    // 1. Crear campaña legacy base
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Unauthenticated. Cannot migrate.");
+
+    // 1. Crear campaña legacy base atada al usuario
     const legacyCampaign: Campaign = {
-      id: "CAMP-LEGACY-001",
+      id: `CAMP-LEGACY-${Date.now()}`,
+      user_id: user.id,
       nombre: "General (Heredada)",
       descripcion: "Campaña importada automáticamente desde la data local anterior."
     };
-    await supabase.from('campaigns').upsert(legacyCampaign);
+    
+    // Insertar campaña
+    const { error: errCamp } = await supabase.from('campaigns').insert(legacyCampaign);
+    if (errCamp) throw errCamp;
 
     // 2. Asociar todos los prospectos a la campaña Legacy
     const companiesToInsert = localState.companies.map(c => ({
@@ -125,7 +139,6 @@ export async function migrateLocalStateToSupabase(localState: AppState) {
       bitacora: c.bitacora || []
     }));
 
-    // Insertar empresas
     if (companiesToInsert.length > 0) {
       const { error: errC } = await supabase.from('companies').upsert(companiesToInsert);
       if (errC) throw errC;
@@ -168,7 +181,7 @@ export async function migrateLocalStateToSupabase(localState: AppState) {
 export async function upsertCompanyToSupabase(c: Company) {
   const row = {
     id: c.id,
-    campaign_id: c.campaign_id, // Important for relations
+    campaign_id: c.campaign_id,
     nombre: c.nombre,
     pais: c.pais,
     sector: c.sector,
