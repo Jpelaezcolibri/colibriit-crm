@@ -29,6 +29,7 @@ interface AppContextType {
   updateMeddicData: (companyId: string, meddicData: any) => void;
   moveCompanyToStage: (companyId: string, stage: any) => void;
   addCompanyLog: (companyId: string, msg: string) => void;
+  consolidateCompanies: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -286,6 +287,61 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (updatedCompanyRef) upsertCompanyToSupabase(updatedCompanyRef);
   };
 
+  const consolidateCompanies = async () => {
+    setIsCloudSyncing(true);
+    let updatedContacts: Contact[] = [];
+    let duplicateIds: string[] = [];
+
+    setState((prev) => {
+      const grouped = new Map<string, Company[]>();
+      prev.companies.forEach(c => {
+        const key = c.nombre.trim().toLowerCase();
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key)!.push(c);
+      });
+
+      const duplicates = Array.from(grouped.values()).filter(g => g.length > 1);
+      if (duplicates.length === 0) return prev; // Nada que hacer
+
+      const newContacts = [...prev.contacts];
+      
+      duplicates.forEach(group => {
+        const survivor = group[0];
+        const dupes = group.slice(1);
+        const dIds = dupes.map(d => d.id);
+        duplicateIds.push(...dIds);
+
+        newContacts.forEach(contact => {
+          if (dIds.includes(contact.empresa_id)) {
+            contact.empresa_id = survivor.id; // Reasignar al survivor
+            updatedContacts.push(contact);
+          }
+        });
+      });
+
+      const newCompanies = prev.companies.filter(c => !duplicateIds.includes(c.id));
+      const newState = { companies: newCompanies, contacts: newContacts };
+      saveState(newState);
+      return newState;
+    });
+
+    // Actualizar base de datos
+    for (const c of updatedContacts) {
+      await upsertContactToSupabase(c);
+    }
+    
+    // Aquí idealmente borraríamos las empresas duplicadas de Supabase, pero requeriría exposing deleteFunction.
+    // Como simplificación agresiva para el usuario:
+    if (duplicateIds.length > 0) {
+       // We can just rely on the UI hiding them since they are not in local state, 
+       // but we should delete them to avoid ghost companies on refresh.
+       const { supabase } = await import('@/lib/supabase');
+       await supabase.from('companies').delete().in('id', duplicateIds);
+    }
+    
+    setIsCloudSyncing(false);
+  };
+
   return (
     <AppContext.Provider value={{ 
       state, 
@@ -303,7 +359,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       activateProspect,
       updateMeddicData,
       moveCompanyToStage,
-      addCompanyLog
+      addCompanyLog,
+      consolidateCompanies
     }}>
       {children}
     </AppContext.Provider>

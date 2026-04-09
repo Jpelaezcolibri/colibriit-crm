@@ -4,7 +4,7 @@ import { Target, Users, Calendar, Activity, FolderPlus, ChevronDown } from 'luci
 import NewCampaignModal from '../campaigns/NewCampaignModal';
 
 export function Header() {
-  const { state, campaigns, activeCampaignId, setActiveCampaignId, createNewCampaign } = useAppState();
+  const { state, campaigns, activeCampaignId, setActiveCampaignId, createNewCampaign, consolidateCompanies } = useAppState();
   const [showNewCampaign, setShowNewCampaign] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -64,7 +64,7 @@ export function Header() {
                       </button>
                     ))}
                   </div>
-                  <div className="px-2 pt-2 mt-2 border-t border-zinc-800/50">
+                  <div className="px-2 pt-2 mt-2 border-t border-zinc-800/50 space-y-1">
                     <button 
                       onClick={() => {
                         setShowNewCampaign(true);
@@ -74,6 +74,18 @@ export function Header() {
                     >
                       <FolderPlus className="w-4 h-4" />
                       Nueva Campaña
+                    </button>
+
+                    <button 
+                      onClick={async () => {
+                        setIsDropdownOpen(false);
+                        await consolidateCompanies();
+                        alert("¡Las empresas duplicadas con el mismo nombre han sido unificadas exitosamente!");
+                      }}
+                      className="w-full flex items-center justify-center gap-2 bg-purple-900/20 hover:bg-purple-900/40 text-purple-400 hover:text-purple-300 px-3 py-2 rounded-lg text-sm transition-colors border border-dashed border-purple-500/30"
+                    >
+                      <Users className="w-4 h-4" />
+                      Unificar Cuentas
                     </button>
                   </div>
                 </div>
