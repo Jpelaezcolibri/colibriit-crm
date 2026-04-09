@@ -4,8 +4,6 @@ import type { AppState } from '@/lib/storage';
 import type { Company, Contact, Campaign } from '@/lib/types';
 import { calculateNextStep } from '@/lib/sequence-engine';
 import { 
-  fetchCompanies, 
-  fetchContacts, 
   fetchCampaigns, 
   createCampaign,
   fetchStateFromSupabase,
