@@ -351,9 +351,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         sf_sync_status: 'not_synced' as const
       }));
 
-      // 1. Insertar empresas
+      // 1. Insertar empresas (Deduplicadas por ID)
+      const uniqueCompanies = Array.from(
+        new Map(allCompanies.map(c => [c.id, c])).values()
+      );
+
       const { error: errC } = await supabase.from('companies').upsert(
-        allCompanies.map(c => ({
+        uniqueCompanies.map(c => ({
           id: c.id,
           campaign_id: c.campaign_id,
           nombre: c.nombre,
@@ -373,9 +377,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       );
       if (errC) throw errC;
 
-      // 2. Insertar contactos
+      // 2. Insertar contactos (Deduplicados por ID)
+      const uniqueContacts = Array.from(
+        new Map(CONTACTOS_SECUENCIA.map(t => [t.id, t])).values()
+      );
+
       const { error: errT } = await supabase.from('contacts').upsert(
-        CONTACTOS_SECUENCIA.map(t => ({
+        uniqueContacts.map(t => ({
           id: t.id,
           empresa_id: t.empresa_id,
           nombre: t.nombre,
