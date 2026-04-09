@@ -70,6 +70,71 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 🚀 FORCE IMPORT TRIGGER (Backdoor para el usuario cuando falla el botón)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('forceImport') === 'true') {
+      async function autoImport() {
+        console.log("Force Import Triggered...");
+        setIsCloudSyncing(true);
+        
+        try {
+          // 1. Crear campaña si no existe o usar la activa
+          let campId = activeCampaignId;
+          if (!campId) {
+            const newCamp = await createCampaign("6° Aniversario (Auto-Import)", "Importación forzada solicitada por el usuario.");
+            if (newCamp) {
+              campId = newCamp.id;
+              setCampaigns(prev => [newCamp, ...prev]);
+              setActiveCampaignIdState(newCamp.id);
+            }
+          }
+
+          if (campId) {
+            // 2. Ejecutar lógica de importación con deduplicación agresiva
+            const allCompanies = [...EMPRESAS_SECUENCIA, ...EMPRESAS_POR_PROSPECTAR].map(c => ({
+              ...c,
+              campaign_id: campId!,
+              sf_sync_status: 'not_synced' as const
+            }));
+
+            const uniqueCompanies = Array.from(new Map(allCompanies.map(c => [c.id, c])).values());
+            await supabase.from('companies').upsert(uniqueCompanies.map(c => ({
+              id: c.id, campaign_id: c.campaign_id, nombre: c.nombre, pais: c.pais, sector: c.sector,
+              tier: c.tier, pain_point: c.pain_point, use_case: c.use_case, palanca_entrada: c.palanca_entrada,
+              caso_referencia: c.caso_referencia, co_sell_partner: c.co_sell_partner, notas: c.notas,
+              meddic_data: c.meddicData || null, pipeline_stage: c.pipelineStage || 'outreach', bitacora: c.bitacora || []
+            })));
+
+            const uniqueContacts = Array.from(new Map(CONTACTOS_SECUENCIA.map(t => [t.id, t])).values());
+            await supabase.from('contacts').upsert(uniqueContacts.map(t => ({
+              id: t.id, empresa_id: t.empresa_id, nombre: t.nombre, cargo: t.cargo, email: t.email,
+              linkedin: t.linkedin, whatsapp: t.whatsapp, telefono: t.telefono, es_decisor: t.es_decisor,
+              notas: t.notas, fase: t.fase, secuencia: t.secuencia, investigacion: t.investigacion,
+              proxima_accion: t.proxima_accion, fecha_proxima: t.fecha_proxima, sf_sync_status: 'not_synced'
+            })));
+
+            // 3. Refrescar UI
+            const cloudState = await fetchStateFromSupabase(campId!);
+            if (cloudState) {
+              setState(cloudState);
+              saveState(cloudState);
+            }
+            
+            // 4. Limpiar URL para evitar bucles
+            window.history.replaceState({}, document.title, window.location.pathname);
+            alert("¡Importación Forzada Exitosa! 156 prospectos cargados.");
+          }
+        } catch (error) {
+          console.error("Force import failed:", error);
+        } finally {
+          setIsCloudSyncing(false);
+        }
+      }
+      autoImport();
+    }
+  }, [activeCampaignId]);
+
   // When active campaign changes, fetch its state
   useEffect(() => {
     if (!activeCampaignId) return;
