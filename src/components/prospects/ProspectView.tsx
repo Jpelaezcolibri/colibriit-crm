@@ -25,18 +25,30 @@ export default function ProspectView() {
   const [filterTier, setFilterTier] = useState<string>('all');
   const [filterPais, setFilterPais] = useState<string>('all');
 
+  // Optimizar búsqueda de contactos habilitando un mapa por ID de empresa
+  const contactsByCompany = useMemo(() => {
+    const map = new Map<string, Contact[]>();
+    state.contacts.forEach(c => {
+      if (!map.has(c.empresa_id)) map.set(c.empresa_id, []);
+      map.get(c.empresa_id)!.push(c);
+    });
+    return map;
+  }, [state.contacts]);
+
   // Only companies that ONLY appear in "por_prospectar" contacts
   const prospectCompanies = useMemo(() => {
-    return state.companies.filter(c =>
-      state.contacts.some(contact => contact.empresa_id === c.id && contact.fase === 'por_prospectar') &&
-      !state.contacts.some(contact => contact.empresa_id === c.id && contact.fase !== 'por_prospectar' && contact.fase !== 'archivado')
-    );
-  }, [state.companies, state.contacts]);
+    return state.companies.filter(c => {
+      const companyContacts = contactsByCompany.get(c.id) || [];
+      return companyContacts.some(contact => contact.fase === 'por_prospectar') &&
+             !companyContacts.some(contact => contact.fase !== 'por_prospectar' && contact.fase !== 'archivado');
+    });
+  }, [state.companies, contactsByCompany]);
 
   const filtered = useMemo(() => {
+    const searchLower = search.toLowerCase();
     return prospectCompanies.filter(c => {
-      const matchSearch = c.nombre.toLowerCase().includes(search.toLowerCase()) || 
-                          c.sector.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = c.nombre.toLowerCase().includes(searchLower) || 
+                          c.sector.toLowerCase().includes(searchLower);
       const matchTier = filterTier === 'all' || String(c.tier) === filterTier;
       const matchPais = filterPais === 'all' || c.pais === filterPais;
       return matchSearch && matchTier && matchPais;
@@ -104,7 +116,7 @@ export default function ProspectView() {
       {/* Prospect cards */}
       <div className="grid gap-4">
         {filtered.map(company => {
-          const contact = state.contacts.find(c => c.empresa_id === company.id && c.fase === 'por_prospectar');
+          const contact = (contactsByCompany.get(company.id) || []).find(c => c.fase === 'por_prospectar');
           if (!contact) return null;
           const estadoInfo = ESTADO_LABELS[contact.investigacion?.estado ?? 'pendiente'];
           const canActivate = contact.investigacion?.estado === 'listo_para_secuencia' ||

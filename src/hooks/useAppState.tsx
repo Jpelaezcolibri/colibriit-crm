@@ -3,14 +3,10 @@ import { loadState, saveState } from '@/lib/storage';
 import type { AppState } from '@/lib/storage';
 import type { Company, Contact, Campaign } from '@/lib/types';
 import { calculateNextStep } from '@/lib/sequence-engine';
-import { 
-  fetchCampaigns, 
-  createCampaign, 
-  fetchStateFromSupabase, 
-  migrateLocalStateToSupabase, 
-  upsertCompanyToSupabase, 
   upsertContactToSupabase 
 } from '@/lib/supabase-service';
+import { supabase } from '@/lib/supabase';
+import { EMPRESAS_SECUENCIA, CONTACTOS_SECUENCIA, EMPRESAS_POR_PROSPECTAR } from '@/data/initial-data';
 
 interface AppContextType {
   state: AppState;
@@ -348,17 +344,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsCloudSyncing(true);
     
     try {
-      const { EMPRESAS_SECUENCIA, CONTACTOS_SECUENCIA, EMPRESAS_POR_PROSPECTAR } = await import('@/data/initial-data');
-      
       // Combinar todas las empresas (P1 y P2)
       const allCompanies = [...EMPRESAS_SECUENCIA, ...EMPRESAS_POR_PROSPECTAR].map(c => ({
         ...c,
         campaign_id: activeCampaignId,
-        sf_sync_status: 'not_synced'
+        sf_sync_status: 'not_synced' as const
       }));
 
       // 1. Insertar empresas
-      const { error: errC } = await (await import('@/lib/supabase')).supabase.from('companies').upsert(
+      const { error: errC } = await supabase.from('companies').upsert(
         allCompanies.map(c => ({
           id: c.id,
           campaign_id: c.campaign_id,
@@ -372,6 +366,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           caso_referencia: c.caso_referencia,
           co_sell_partner: c.co_sell_partner,
           notas: c.notas,
+          meddic_data: c.meddicData || null,
           pipeline_stage: c.pipelineStage || 'outreach',
           bitacora: c.bitacora || []
         }))
@@ -379,7 +374,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (errC) throw errC;
 
       // 2. Insertar contactos
-      const { error: errT } = await (await import('@/lib/supabase')).supabase.from('contacts').upsert(
+      const { error: errT } = await supabase.from('contacts').upsert(
         CONTACTOS_SECUENCIA.map(t => ({
           id: t.id,
           empresa_id: t.empresa_id,
@@ -409,9 +404,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
       
       alert(`¡Campaña Aniversario importada con éxito! (156 empresas integradas)`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error importing campaign data:", error);
-      alert("Error al importar los datos. Revisa la consola.");
+      alert(`Error al importar: ${error.message || 'Error desconocido'}. Revisa que tengas permisos.`);
     } finally {
       setIsCloudSyncing(false);
     }

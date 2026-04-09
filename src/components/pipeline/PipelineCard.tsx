@@ -17,7 +17,7 @@ const STEP_ESTADO_COLOR: Record<string, string> = {
   'saltado': 'bg-amber-600/50',
 };
 
-export const PipelineCard: React.FC<PipelineCardProps> = ({ company, contacts, onDragStart, onClick }) => {
+export const PipelineCard: React.FC<PipelineCardProps> = React.memo(({ company, contacts, onDragStart, onClick }) => {
   // MEDDIC Score
   const meddicScore = company.meddicData
     ? Object.values(company.meddicData.score).reduce((acc, curr) => acc + curr.val, 0)
@@ -192,4 +192,4 @@ export const PipelineCard: React.FC<PipelineCardProps> = ({ company, contacts, o
       </div>
     </div>
   );
-};
+});
