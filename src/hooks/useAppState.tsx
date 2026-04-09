@@ -3,6 +3,11 @@ import { loadState, saveState } from '@/lib/storage';
 import type { AppState } from '@/lib/storage';
 import type { Company, Contact, Campaign } from '@/lib/types';
 import { calculateNextStep } from '@/lib/sequence-engine';
+import { 
+  fetchCompanies, 
+  fetchContacts, 
+  fetchCampaigns, 
+  upsertCompanyToSupabase, 
   upsertContactToSupabase 
 } from '@/lib/supabase-service';
 import { supabase } from '@/lib/supabase';
