@@ -7,6 +7,9 @@ import {
   fetchCompanies, 
   fetchContacts, 
   fetchCampaigns, 
+  createCampaign,
+  fetchStateFromSupabase,
+  migrateLocalStateToSupabase,
   upsertCompanyToSupabase, 
   upsertContactToSupabase 
 } from '@/lib/supabase-service';
