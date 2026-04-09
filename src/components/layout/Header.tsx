@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useAppState } from '@/hooks/useAppState';
-import { Target, Users, Calendar, Activity, FolderPlus, ChevronDown } from 'lucide-react';
+import { Target, Users, Calendar, Activity, FolderPlus, ChevronDown, Database } from 'lucide-react';
 import NewCampaignModal from '../campaigns/NewCampaignModal';
 
 export function Header() {
-  const { state, campaigns, activeCampaignId, setActiveCampaignId, createNewCampaign, consolidateCompanies } = useAppState();
+  const { state, campaigns, activeCampaignId, setActiveCampaignId, createNewCampaign, consolidateCompanies, importAniversarioData } = useAppState();
   const [showNewCampaign, setShowNewCampaign] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -86,6 +86,19 @@ export function Header() {
                     >
                       <Users className="w-4 h-4" />
                       Unificar Cuentas
+                    </button>
+
+                    <button 
+                      onClick={async () => {
+                        if (window.confirm("¿Seguro que quieres importar los 156 prospectos de la base de datos de Aniversario en esta campaña?")) {
+                          setIsDropdownOpen(false);
+                          await importAniversarioData();
+                        }
+                      }}
+                      className="w-full flex items-center justify-center gap-2 bg-emerald-900/20 hover:bg-emerald-900/40 text-emerald-400 hover:text-emerald-300 px-3 py-2 rounded-lg text-sm transition-colors border border-dashed border-emerald-500/30"
+                    >
+                      <Database className="w-4 h-4" />
+                      Importar Base Datos
                     </button>
                   </div>
                 </div>

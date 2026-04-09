@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import type { Contact } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
@@ -26,19 +26,34 @@ export default function ProspectView() {
   const [filterPais, setFilterPais] = useState<string>('all');
 
   // Only companies that ONLY appear in "por_prospectar" contacts
-  const prospectCompanies = state.companies.filter(c =>
-    state.contacts.some(contact => contact.empresa_id === c.id && contact.fase === 'por_prospectar') &&
-    !state.contacts.some(contact => contact.empresa_id === c.id && contact.fase !== 'por_prospectar' && contact.fase !== 'archivado')
-  );
+  const prospectCompanies = useMemo(() => {
+    return state.companies.filter(c =>
+      state.contacts.some(contact => contact.empresa_id === c.id && contact.fase === 'por_prospectar') &&
+      !state.contacts.some(contact => contact.empresa_id === c.id && contact.fase !== 'por_prospectar' && contact.fase !== 'archivado')
+    );
+  }, [state.companies, state.contacts]);
 
-  const filtered = prospectCompanies.filter(c => {
-    const matchSearch = c.nombre.toLowerCase().includes(search.toLowerCase()) || c.sector.toLowerCase().includes(search.toLowerCase());
-    const matchTier = filterTier === 'all' || String(c.tier) === filterTier;
-    const matchPais = filterPais === 'all' || c.pais === filterPais;
-    return matchSearch && matchTier && matchPais;
-  });
+  const filtered = useMemo(() => {
+    return prospectCompanies.filter(c => {
+      const matchSearch = c.nombre.toLowerCase().includes(search.toLowerCase()) || 
+                          c.sector.toLowerCase().includes(search.toLowerCase());
+      const matchTier = filterTier === 'all' || String(c.tier) === filterTier;
+      const matchPais = filterPais === 'all' || c.pais === filterPais;
+      return matchSearch && matchTier && matchPais;
+    });
+  }, [prospectCompanies, search, filterTier, filterPais]);
 
-  const allPaises = [...new Set(prospectCompanies.map(c => c.pais))].sort();
+  const allPaises = useMemo(() => {
+    return [...new Set(prospectCompanies.map(c => c.pais))].sort();
+  }, [prospectCompanies]);
+
+  const statsByEstado = useMemo(() => {
+    const stats: Record<string, number> = {};
+    ESTADO_ORDER.forEach(e => {
+      stats[e] = state.contacts.filter(c => c.fase === 'por_prospectar' && c.investigacion?.estado === e).length;
+    });
+    return stats;
+  }, [state.contacts]);
 
   function advanceEstado(contact: Contact) {
     const currentIdx = ESTADO_ORDER.indexOf(contact.investigacion?.estado as typeof ESTADO_ORDER[number]);
@@ -60,7 +75,7 @@ export default function ProspectView() {
           <span>Total: <strong className="text-white">{prospectCompanies.length}</strong></span>
           {ESTADO_ORDER.map(e => (
             <span key={e}>
-              {ESTADO_LABELS[e].label}: <strong className="text-white">{state.contacts.filter(c => c.fase === 'por_prospectar' && c.investigacion?.estado === e).length}</strong>
+              {ESTADO_LABELS[e].label}: <strong className="text-white">{statsByEstado[e] || 0}</strong>
             </span>
           ))}
         </div>

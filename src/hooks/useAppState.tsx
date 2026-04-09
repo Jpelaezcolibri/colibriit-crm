@@ -30,6 +30,7 @@ interface AppContextType {
   moveCompanyToStage: (companyId: string, stage: any) => void;
   addCompanyLog: (companyId: string, msg: string) => void;
   consolidateCompanies: () => Promise<void>;
+  importAniversarioData: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -342,6 +343,80 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setIsCloudSyncing(false);
   };
 
+  const importAniversarioData = async () => {
+    if (!activeCampaignId) return;
+    setIsCloudSyncing(true);
+    
+    try {
+      const { EMPRESAS_SECUENCIA, CONTACTOS_SECUENCIA, EMPRESAS_POR_PROSPECTAR } = await import('@/data/initial-data');
+      
+      // Combinar todas las empresas (P1 y P2)
+      const allCompanies = [...EMPRESAS_SECUENCIA, ...EMPRESAS_POR_PROSPECTAR].map(c => ({
+        ...c,
+        campaign_id: activeCampaignId,
+        sf_sync_status: 'not_synced'
+      }));
+
+      // 1. Insertar empresas
+      const { error: errC } = await (await import('@/lib/supabase')).supabase.from('companies').upsert(
+        allCompanies.map(c => ({
+          id: c.id,
+          campaign_id: c.campaign_id,
+          nombre: c.nombre,
+          pais: c.pais,
+          sector: c.sector,
+          tier: c.tier,
+          pain_point: c.pain_point,
+          use_case: c.use_case,
+          palanca_entrada: c.palanca_entrada,
+          caso_referencia: c.caso_referencia,
+          co_sell_partner: c.co_sell_partner,
+          notas: c.notas,
+          pipeline_stage: c.pipelineStage || 'outreach',
+          bitacora: c.bitacora || []
+        }))
+      );
+      if (errC) throw errC;
+
+      // 2. Insertar contactos
+      const { error: errT } = await (await import('@/lib/supabase')).supabase.from('contacts').upsert(
+        CONTACTOS_SECUENCIA.map(t => ({
+          id: t.id,
+          empresa_id: t.empresa_id,
+          nombre: t.nombre,
+          cargo: t.cargo,
+          email: t.email,
+          linkedin: t.linkedin,
+          whatsapp: t.whatsapp,
+          telefono: t.telefono,
+          es_decisor: t.es_decisor,
+          notas: t.notas,
+          fase: t.fase,
+          secuencia: t.secuencia,
+          investigacion: t.investigacion,
+          proxima_accion: t.proxima_accion,
+          fecha_proxima: t.fecha_proxima,
+          sf_sync_status: 'not_synced'
+        }))
+      );
+      if (errT) throw errT;
+
+      // Refrescar estado local
+      const cloudState = await fetchStateFromSupabase(activeCampaignId);
+      if (cloudState) {
+        setState(cloudState);
+        saveState(cloudState);
+      }
+      
+      alert(`¡Campaña Aniversario importada con éxito! (156 empresas integradas)`);
+    } catch (error) {
+      console.error("Error importing campaign data:", error);
+      alert("Error al importar los datos. Revisa la consola.");
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
   return (
     <AppContext.Provider value={{ 
       state, 
@@ -360,7 +435,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateMeddicData,
       moveCompanyToStage,
       addCompanyLog,
-      consolidateCompanies
+      consolidateCompanies,
+      importAniversarioData
     }}>
       {children}
     </AppContext.Provider>

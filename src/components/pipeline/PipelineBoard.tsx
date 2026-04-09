@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAppState } from '@/hooks/useAppState';
 import type { PipelineStage } from '@/lib/types';
 import { PipelineCard } from './PipelineCard';
@@ -22,7 +22,7 @@ const STAGES: { id: PipelineStage; label: string; sublabel: string; icon: any; c
 ];
 
 export const PipelineBoard: React.FC = () => {
-  const { state, moveCompanyToStage, addCompanyLog, addCompany } = useAppState();
+  const { state, moveCompanyToStage, addCompanyLog, addCompany, isCloudSyncing } = useAppState();
   const [dragOverStage, setDragOverStage] = useState<PipelineStage | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [showAddCompany, setShowAddCompany] = useState(false);
@@ -52,7 +52,9 @@ export const PipelineBoard: React.FC = () => {
 
   // Only show companies that are in EMPRESAS_SECUENCIA (active pipeline)
   // EP* companies stay in the "Descubrimiento" tab
-  const pipelineCompanies = state.companies.filter(c => c.id.startsWith('E') && !c.id.startsWith('EP'));
+  const pipelineCompanies = useMemo(() => {
+    return state.companies.filter(c => c.id.startsWith('E') && !c.id.startsWith('EP'));
+  }, [state.companies]);
 
   const getCompaniesByStage = (stage: PipelineStage) => {
     return pipelineCompanies
@@ -92,7 +94,7 @@ export const PipelineBoard: React.FC = () => {
             <span className="text-lg leading-none">+</span> Añadir Prospecto
           </button>
           
-          {useAppState().isCloudSyncing && (
+          {isCloudSyncing && (
             <span className="text-xs text-emerald-400 font-medium animate-pulse flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span> Sincronizando...
             </span>
