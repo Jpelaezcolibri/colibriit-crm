@@ -20,7 +20,7 @@ export function Header() {
   return (
     <>
       <header className="border-b border-zinc-800 bg-black text-white p-4 relative z-50">
-        <div className="container mx-auto flex justify-between items-center">
+        <div className="mx-auto max-w-[98%] flex justify-between items-center">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <Activity className="text-cyan-500 h-6 w-6" />
@@ -93,18 +93,18 @@ export function Header() {
             </div>
           </div>
           
-          <div className="flex space-x-6">
-            <div className="flex items-center space-x-2">
+          <div className="flex space-x-8">
+            <div className="flex items-center space-x-2.5">
               <Target className="h-4 w-4 text-emerald-500" />
-              <span className="text-sm font-mono text-zinc-300">Activos: {activeSequencesCount}</span>
+              <span className="text-[13px] font-bold text-zinc-300 uppercase tracking-wide">Activos: <span className="text-white ml-0.5">{activeSequencesCount}</span></span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2.5">
               <Users className="h-4 w-4 text-emerald-400" />
-              <span className="text-sm font-mono text-zinc-300">Respondieron: {respondedCount}</span>
+              <span className="text-[13px] font-bold text-zinc-300 uppercase tracking-wide">Respuestas: <span className="text-white ml-0.5">{respondedCount}</span></span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2.5">
               <Calendar className="h-4 w-4 text-amber-500" />
-              <span className="text-sm font-mono text-zinc-300">Discovery: {discoveryCount}</span>
+              <span className="text-[13px] font-bold text-zinc-300 uppercase tracking-wide">Discovery: <span className="text-white ml-0.5">{discoveryCount}</span></span>
             </div>
           </div>
         </div>

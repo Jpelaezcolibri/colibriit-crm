@@ -35,37 +35,37 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col justify-center items-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col justify-center items-center p-4 relative overflow-hidden">
       {/* Background Decorators */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-900/20 blur-[120px] rounded-full poiner-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-900/20 blur-[120px] rounded-full poiner-events-none"></div>
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-900/10 blur-[120px] rounded-full poiner-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-900/10 blur-[120px] rounded-full poiner-events-none"></div>
 
       <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <Activity className="h-10 w-10 text-cyan-400" />
-            <span className="text-3xl font-extrabold text-white tracking-tighter">ColibriIT</span>
+        <div className="text-center mb-10">
+          <div className="flex items-center justify-center space-x-3 mb-4">
+            <Activity className="h-12 w-12 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
+            <span className="text-4xl font-extrabold text-white tracking-tight">ColibriIT</span>
           </div>
-          <h1 className="text-xl text-zinc-400 font-mono tracking-wide">
-            EXECUTIVE CRM
+          <h1 className="text-sm text-zinc-500 font-bold uppercase tracking-[0.3em]">
+            Command Center
           </h1>
         </div>
 
-        <div className="bg-zinc-950/60 border border-zinc-800/50 backdrop-blur-md rounded-2xl shadow-2xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">
+        <div className="bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-xl rounded-[2rem] shadow-2xl p-10">
+          <h2 className="text-2xl font-bold text-white mb-8 text-center italic">
             {isLogin ? 'Acceso Corporativo' : 'Nuevo Workspace'}
           </h2>
 
           {errorMsg && (
-            <div className={`p-3 mb-4 rounded-lg text-sm border ${errorMsg.includes('revisa tu correo') ? 'bg-emerald-900/30 text-emerald-400 border-emerald-900/50' : 'bg-red-900/30 text-red-400 border-red-900/50'}`}>
+            <div className={`p-4 mb-6 rounded-xl text-sm font-medium border animate-in fade-in slide-in-from-top-2 ${errorMsg.includes('revisa tu correo') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}>
               {errorMsg}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-zinc-400 text-xs uppercase tracking-wider flex items-center gap-2">
-                <Mail className="h-3 w-3" /> Correo Electrónico
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2.5">
+              <Label htmlFor="email" className="text-zinc-500 text-[11px] font-bold uppercase tracking-widest flex items-center gap-2.5 ml-1">
+                <Mail className="h-3.5 w-3.5" /> Correo Electrónico
               </Label>
               <Input
                 id="email"
@@ -74,14 +74,14 @@ export default function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="bg-zinc-900 border-zinc-800 text-white focus-visible:ring-cyan-500 h-12"
+                className="bg-zinc-950/50 border-zinc-800/80 text-white focus-visible:ring-cyan-500 h-14 rounded-xl text-base"
                 placeholder="usuario@tuempresa.com"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-400 text-xs uppercase tracking-wider flex items-center gap-2">
-                <Lock className="h-3 w-3" /> Contraseña
+            <div className="space-y-2.5">
+              <Label htmlFor="password" className="text-zinc-500 text-[11px] font-bold uppercase tracking-widest flex items-center gap-2.5 ml-1">
+                <Lock className="h-3.5 w-3.5" /> Contraseña
               </Label>
               <Input
                 id="password"
@@ -90,7 +90,7 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
-                className="bg-zinc-900 border-zinc-800 text-white focus-visible:ring-cyan-500 h-12"
+                className="bg-zinc-950/50 border-zinc-800/80 text-white focus-visible:ring-cyan-500 h-14 rounded-xl text-base"
                 placeholder="••••••••"
                 minLength={6}
               />
@@ -99,23 +99,23 @@ export default function AuthPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-white text-black hover:bg-zinc-200 font-bold tracking-wide mt-2"
+              className="w-full h-14 bg-white text-black hover:bg-zinc-200 font-extrabold text-base tracking-tight rounded-xl mt-4 transition-all active:scale-[0.98] shadow-lg shadow-white/5"
             >
               {loading ? (
-                <span className="flex items-center gap-2">
-                  <Server className="h-4 w-4 animate-spin" /> Procesando...
+                <span className="flex items-center gap-2.5 text-black">
+                  <Server className="h-5 w-5 animate-spin" /> Procesando...
                 </span>
               ) : (
-                isLogin ? 'Iniciar Sesión' : 'Crear Cuenta Segura'
+                isLogin ? 'Iniciar Sesión' : 'Crear Workspace'
               )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <button
               type="button"
               onClick={() => setIsLogin(!isLogin)}
-              className="text-sm text-cyan-500 hover:text-cyan-400 font-mono transition-colors"
+              className="text-sm text-cyan-500 hover:text-cyan-400 font-bold transition-all underline underline-offset-4 decoration-cyan-500/30 hover:decoration-cyan-500"
             >
               {isLogin
                 ? '¿No tienes cuenta? Registra tu Workspace'
@@ -124,8 +124,8 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <p className="text-center text-zinc-600 text-xs mt-8">
-          © 2026 ColibriIT. Sistema asegurado mediante políticas militares RLS (Row-Level Security).
+        <p className="text-center text-zinc-600 text-xs mt-10 font-medium px-8 leading-relaxed">
+          © 2026 ColibriIT. Sistema asegurado mediante políticas avanzadas de aislamiento de datos (RLS).
         </p>
       </div>
     </div>

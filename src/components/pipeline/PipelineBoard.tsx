@@ -74,12 +74,12 @@ export const PipelineBoard: React.FC = () => {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-emerald-500" />
-            <span className="text-xs font-mono text-zinc-400">
+            <span className="text-sm font-medium text-zinc-400">
               <span className="text-zinc-200 font-bold">{totalActive}</span> cuentas activas
             </span>
           </div>
           <div className="h-4 w-px bg-zinc-800" />
-          <span className="text-xs font-mono text-zinc-400">
+          <span className="text-sm font-medium text-zinc-400">
             <span className="text-cyan-400 font-bold">{totalResponded}</span> respondieron
           </span>
         </div>
@@ -87,17 +87,17 @@ export const PipelineBoard: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowAddCompany(true)}
-            className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors text-xs font-bold mr-4"
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/20 text-sm font-bold mr-4"
           >
-            + Añadir Prospecto
+            <span className="text-lg leading-none">+</span> Añadir Prospecto
           </button>
           
           {useAppState().isCloudSyncing && (
-            <span className="text-[10px] text-emerald-400 font-mono animate-pulse flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Sincronizando nube...
+            <span className="text-xs text-emerald-400 font-medium animate-pulse flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span> Sincronizando...
             </span>
           )}
-          <span className="text-[10px] text-zinc-600 font-mono">Arrastra para mover entre etapas</span>
+          <span className="text-xs text-zinc-500 font-medium">Arrastra para mover entre etapas</span>
         </div>
       </div>
 
@@ -114,25 +114,25 @@ export const PipelineBoard: React.FC = () => {
               onDragOver={(e) => onDragOver(e, stage.id)}
               onDrop={(e) => onDrop(e, stage.id)}
               onDragLeave={() => setDragOverStage(null)}
-              className={`flex-shrink-0 w-[300px] flex flex-col rounded-2xl bg-zinc-900/30 border-t-2 border transition-all duration-200 ${
+              className={`flex-1 min-w-[320px] flex flex-col rounded-2xl bg-zinc-900/30 border-t-2 border transition-all duration-200 ${
                 isOver
                   ? `${stage.borderColor} border-zinc-700/50 bg-zinc-800/20 scale-[1.01]`
                   : `${stage.borderColor} border-zinc-800/30`
               }`}
             >
               {/* Column Header */}
-              <div className="p-3.5 flex items-center justify-between border-b border-zinc-800/30">
-                <div className="flex items-center gap-2">
-                  <div className={`p-1.5 rounded-lg bg-zinc-800/60 ${stage.color}`}>
-                    <Icon className="w-4 h-4" />
+              <div className="p-4 flex items-center justify-between border-b border-zinc-800/20">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl bg-zinc-800/40 ${stage.color} shadow-inner`}>
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-zinc-200 leading-none">{stage.label}</h3>
-                    <p className="text-[9px] text-zinc-600 mt-0.5">{stage.sublabel}</p>
+                    <h3 className="text-base font-bold text-zinc-100 tracking-tight leading-none">{stage.label}</h3>
+                    <p className="text-[11px] font-medium text-zinc-500 mt-1 uppercase tracking-wider">{stage.sublabel}</p>
                   </div>
                 </div>
-                <span className={`text-[12px] font-mono font-bold px-2 py-0.5 rounded-full ${
-                  stageCompanies.length > 0 ? `${stage.color} bg-zinc-800` : 'text-zinc-600 bg-zinc-800/50'
+                <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${
+                  stageCompanies.length > 0 ? `${stage.color} bg-zinc-800/80` : 'text-zinc-600 bg-zinc-800/30'
                 }`}>
                   {stageCompanies.length}
                 </span>

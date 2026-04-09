@@ -58,7 +58,7 @@ export const PipelineCard: React.FC<PipelineCardProps> = ({ company, contacts, o
       draggable
       onDragStart={(e) => onDragStart(e, company.id)}
       onClick={onClick}
-      className={`group relative bg-zinc-900/60 backdrop-blur-sm border rounded-xl p-4 mb-3 cursor-grab active:cursor-grabbing hover:bg-zinc-800/60 transition-all duration-200 shadow-lg ${getBorderClass()}`}
+      className={`group relative bg-zinc-900/40 backdrop-blur-md border rounded-2xl p-5 mb-4 cursor-grab active:cursor-grabbing hover:bg-zinc-800/40 transition-all duration-300 shadow-xl ${getBorderClass()}`}
     >
       {/* Response indicator pulse */}
       {hasResponse && (
@@ -69,21 +69,21 @@ export const PipelineCard: React.FC<PipelineCardProps> = ({ company, contacts, o
 
       {/* Header */}
       <div className="flex items-start gap-2.5 mb-3">
-        <div className="p-1.5 bg-zinc-800/80 rounded-lg group-hover:scale-105 transition-transform shrink-0">
-          <Building2 className="w-4 h-4 text-zinc-400" />
+        <div className="p-2 bg-zinc-800/50 rounded-xl group-hover:scale-110 transition-transform shrink-0 shadow-inner">
+          <Building2 className="w-5 h-5 text-zinc-400" />
         </div>
         <div className="min-w-0 flex-1">
-          <h4 className="text-[13px] font-bold text-zinc-100 leading-tight line-clamp-1">{company.nombre}</h4>
-          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-            <span className={`text-[9px] px-1.5 py-0.5 rounded border font-mono font-bold ${getTierColor(company.tier)}`}>
+          <h4 className="text-[15px] font-bold text-zinc-100 leading-snug tracking-tight line-clamp-1">{company.nombre}</h4>
+          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+            <span className={`text-[11px] px-2 py-0.5 rounded-lg border font-bold tracking-wider ${getTierColor(company.tier)}`}>
               T{company.tier}
             </span>
-            <span className="text-[9px] text-zinc-500 flex items-center gap-0.5">
-              <Globe2 className="w-2.5 h-2.5" />
+            <span className="text-[11px] text-zinc-400 font-medium flex items-center gap-1">
+              <Globe2 className="w-3 h-3" />
               {company.pais}
             </span>
-            <span className="text-[9px] text-zinc-600">•</span>
-            <span className="text-[9px] text-zinc-500 truncate">{company.sector}</span>
+            <span className="text-zinc-700">•</span>
+            <span className="text-[11px] text-zinc-500 font-medium truncate">{company.sector}</span>
           </div>
         </div>
       </div>
@@ -92,22 +92,22 @@ export const PipelineCard: React.FC<PipelineCardProps> = ({ company, contacts, o
       <div className="space-y-2.5">
         {company.pipelineStage === 'outreach' ? (
           /* ── OUTREACH: Show Sequence Progress ── */
-          <div className="bg-zinc-950/50 rounded-lg p-3 border border-zinc-800/50">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Secuencia</span>
-              <span className={`text-[10px] font-mono font-bold ${pasoActual >= 4 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                {pasoActual}/7
+          <div className="bg-zinc-950/40 rounded-xl p-4 border border-zinc-800/30">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Secuencia</span>
+              <span className={`text-xs font-bold ${pasoActual >= 4 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                {pasoActual} de 7
               </span>
             </div>
             {/* Step circles with canal icons */}
-            <div className="flex gap-1">
+            <div className="flex gap-1.5 h-2">
               {[1, 2, 3, 4, 5, 6, 7].map((step) => {
                 const stepData = mainContact?.secuencia?.pasos?.[step];
                 const estado = stepData?.estado || 'pendiente';
                 return (
                   <div
                     key={step}
-                    className={`h-2 flex-1 rounded-full transition-all duration-300 ${STEP_ESTADO_COLOR[estado] || 'bg-zinc-800'}`}
+                    className={`h-full flex-1 rounded-full transition-all duration-300 ${STEP_ESTADO_COLOR[estado] || 'bg-zinc-800/50'}`}
                     title={`P${step}: ${stepData?.canal || '?'} — ${estado}`}
                   />
                 );
@@ -115,51 +115,51 @@ export const PipelineCard: React.FC<PipelineCardProps> = ({ company, contacts, o
             </div>
             {/* Active contact info */}
             {mainContact && (
-              <div className="mt-2.5 flex items-start gap-2">
-                <div className={`shrink-0 mt-0.5 p-1 rounded ${hasResponse ? 'bg-cyan-500/10 text-cyan-400' : 'bg-zinc-800 text-zinc-500'}`}>
-                  <Zap className="w-3 h-3" />
+              <div className="mt-4 flex items-start gap-2.5">
+                <div className={`shrink-0 p-1.5 rounded-lg ${hasResponse ? 'bg-cyan-500/10 text-cyan-400' : 'bg-zinc-800/50 text-zinc-500'}`}>
+                  <Zap className="w-3.5 h-3.5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold text-zinc-300 truncate">{mainContact.nombre}</p>
-                  <p className="text-[9px] text-zinc-500 line-clamp-1">{mainContact.proxima_accion}</p>
+                  <p className="text-[12px] font-bold text-zinc-200 truncate">{mainContact.nombre}</p>
+                  <p className="text-[11px] text-zinc-400 font-medium leading-relaxed mt-0.5 line-clamp-1">{mainContact.proxima_accion}</p>
                 </div>
               </div>
             )}
             {/* Show secondary contacts */}
             {activeContacts.length > 1 && (
-              <p className="text-[9px] text-zinc-600 mt-1.5">
-                +{activeContacts.length - 1} contacto{activeContacts.length > 2 ? 's' : ''} más en secuencia
+              <p className="text-[10px] text-zinc-500 font-medium mt-2">
+                +{activeContacts.length - 1} contacto{activeContacts.length > 2 ? 's' : ''} más
               </p>
             )}
           </div>
         ) : (
           /* ── DISCOVERY+ : Show MEDDIC & Deal Info ── */
-          <div className="bg-zinc-950/50 rounded-lg p-3 border border-zinc-800/50">
-            <div className="flex justify-between items-center mb-1.5">
-              <div className="flex items-center gap-1.5">
-                <Target className="w-3 h-3 text-amber-500" />
-                <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">MEDDIC</span>
+          <div className="bg-zinc-950/40 rounded-xl p-4 border border-zinc-800/30">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <Target className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest">MEDDIC Score</span>
               </div>
-              <span className={`text-[10px] font-mono font-bold ${
+              <span className={`text-xs font-bold ${
                 meddicScore >= 15 ? 'text-emerald-400' :
                 meddicScore >= 10 ? 'text-amber-400' :
                 'text-red-400'
               }`}>
-                {meddicScore}/18
+                {meddicScore} / 18
               </span>
             </div>
-            <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-zinc-800/50 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  meddicScore >= 15 ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' :
-                  meddicScore >= 10 ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.3)]' :
+                  meddicScore >= 15 ? 'bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]' :
+                  meddicScore >= 10 ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]' :
                   'bg-red-500/60'
                 }`}
                 style={{ width: `${Math.max((meddicScore / 18) * 100, 3)}%` }}
               />
             </div>
-            <p className="text-[10px] text-zinc-400 mt-2 line-clamp-2 leading-relaxed">
-              {company.use_case}
+            <p className="text-[11px] text-zinc-400 font-medium mt-3 line-clamp-2 leading-relaxed italic">
+              "{company.use_case}"
             </p>
           </div>
         )}
@@ -173,20 +173,20 @@ export const PipelineCard: React.FC<PipelineCardProps> = ({ company, contacts, o
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/30">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 text-[10px] text-zinc-500">
-              <Users className="w-3 h-3" />
+        <div className="flex items-center justify-between pt-3 border-t border-zinc-800/20">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-medium">
+              <Users className="w-3.5 h-3.5" />
               <span>{contacts.length} contacto{contacts.length !== 1 ? 's' : ''}</span>
             </div>
             {company.co_sell_partner && company.co_sell_partner !== '—' && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">
+              <span className="text-[10px] px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-bold uppercase tracking-wider">
                 Co-sell
               </span>
             )}
           </div>
-          <button className="p-1 hover:bg-zinc-700 rounded transition-colors text-zinc-500 hover:text-zinc-100">
-            <ChevronRight className="w-4 h-4" />
+          <button className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-zinc-500 hover:text-zinc-100 shadow-sm">
+            <ChevronRight className="w-5 h-5" />
           </button>
         </div>
       </div>
